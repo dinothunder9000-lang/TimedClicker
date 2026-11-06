@@ -1,29 +1,65 @@
 #include <iostream>
 #include <windows.h>
+#include <thread>
+#include <chrono>
+
+void performClick() {
+    INPUT inputs[2] = {};
+    
+    inputs[0].type = INPUT_MOUSE;
+    inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+
+    inputs[1].type = INPUT_MOUSE;
+    inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+
+    SendInput(2, inputs, sizeof(INPUT));
+}
 
 int main() {
-    std::cout << "===========================================" << std::endl;
-    std::cout << "   Standalone Windows Application Running  " << std::endl;
-    std::cout << "===========================================\n" << std::endl;
+    std::cout << "===========================================\n";
+    std::cout << "             TIMED AUTO-CLICKER            \n";
+    std::cout << "===========================================\n\n";
 
-    // Retrieve System Information
-    SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
-
-    std::cout << "Processor Architecture: " << sysInfo.wProcessorArchitecture << std::endl;
-    std::cout << "Number of Processors:   " << sysInfo.dwNumberOfProcessors << std::endl;
-
-    // Retrieve Physical Memory Status
-    MEMORYSTATUSEX memStatus;
-    memStatus.dwLength = sizeof(memStatus);
-    if (GlobalMemoryStatusEx(&memStatus)) {
-        DWORDLONG totalRAM = memStatus.ullTotalPhys / (1024 * 1024);
-        DWORDLONG availRAM = memStatus.ullAvailPhys / (1024 * 1024);
-        std::cout << "Total Memory:           " << totalRAM << " MB" << std::endl;
-        std::cout << "Available Memory:       " << availRAM << " MB" << std::endl;
+    int intervalMs = 100;
+    std::cout << "Enter click interval in milliseconds (e.g. 100): ";
+    if (!(std::cin >> intervalMs) || intervalMs <= 0) {
+        intervalMs = 100;
     }
 
-    std::cout << "\nBuild complete. Press Enter to exit...";
-    std::cin.get();
+    std::cout << "\nControls:\n";
+    std::cout << "  [F6] - Toggle ON / OFF\n";
+    std::cout << "  [F7] - Exit Program\n\n";
+    std::cout << "Current Status: STOPPED\n";
+
+    bool running = false;
+    bool f6Pressed = false;
+
+    while (true) {
+        // Toggle running state with F6 key
+        if (GetAsyncKeyState(VK_F6) & 0x8000) {
+            if (!f6Pressed) {
+                running = !running;
+                f6Pressed = true;
+                std::cout << "Status: " << (running ? "RUNNING..." : "STOPPED") << std::endl;
+            }
+        } else {
+            f6Pressed = false;
+        }
+
+        // Exit with F7 key
+        if (GetAsyncKeyState(VK_F7) & 0x8000) {
+            std::cout << "Exiting program...\n";
+            break;
+        }
+
+        // Click loop
+        if (running) {
+            performClick();
+            std::this_thread::sleep_for(std::chrono::milliseconds(intervalMs));
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    }
+
     return 0;
 }
