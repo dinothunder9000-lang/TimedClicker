@@ -1,0 +1,18 @@
+name: Build TimedClicker Executable
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Compile C++ Code
+        run: |
+          g++ -O2 -static -static-libgcc -static-libstdc++ main.cpp -o TimedClicker.exe
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TimedClicker-Windows
+          path: TimedClicker.exe
